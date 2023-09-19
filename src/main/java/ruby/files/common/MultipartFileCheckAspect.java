@@ -1,4 +1,4 @@
-package ruby.files.image;
+package ruby.files.common;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -6,17 +6,19 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import ruby.files.image.exception.ImageTypeException;
+import ruby.files.common.exception.MultipartFileTypeException;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 @Aspect
 @Component
-public class ImageAspect {
+public class MultipartFileCheckAspect {
 
-    @Around("@annotation(ruby.files.image.ImageCheck)")
+    @Around("@annotation(ruby.files.common.MultipartFileCheck)")
     public Object proceed(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        MultipartFileCheck multipartFileCheck = methodSignature.getMethod().getAnnotation(MultipartFileCheck.class);
+        MultipartFileType[] multipartFileTypes = multipartFileCheck.checkTypes();
         Class<?>[] parameterTypes = methodSignature.getParameterTypes();
         Object[] args = joinPoint.getArgs();
 
@@ -25,20 +27,19 @@ public class ImageAspect {
                 continue;
             }
 
-            MultipartFile image = (MultipartFile) args[i];
-            if (isImage(image)) {
-                return joinPoint.proceed();
+            MultipartFile multipartFile = (MultipartFile) args[i];
+            boolean typeCheck = Arrays.stream(multipartFileTypes)
+                .anyMatch(multipartFileType -> multipartFileType.isType(multipartFile));
+
+            if (!typeCheck) {
+                throw new MultipartFileTypeException();
             }
         }
 
-        throw new ImageTypeException();
+        return joinPoint.proceed();
     }
 
     private boolean isMultipartFile(Class<?> classType) {
         return classType.equals(MultipartFile.class);
-    }
-
-    private boolean isImage(MultipartFile image) {
-        return Objects.requireNonNull(image.getContentType()).toLowerCase().startsWith("image");
     }
 }
