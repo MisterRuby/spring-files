@@ -1,4 +1,4 @@
-package ruby.files.common;
+package ruby.files.common.file;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;

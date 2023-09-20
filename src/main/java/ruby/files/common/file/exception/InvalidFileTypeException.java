@@ -1,4 +1,4 @@
-package ruby.files.common.exception;
+package ruby.files.common.file.exception;
 
 public class InvalidFileTypeException extends RuntimeException {
 

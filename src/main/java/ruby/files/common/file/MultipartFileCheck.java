@@ -1,4 +1,4 @@
-package ruby.files.common;
+package ruby.files.common.file;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
