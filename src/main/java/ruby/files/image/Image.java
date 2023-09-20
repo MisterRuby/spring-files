@@ -20,12 +20,14 @@ public class Image {
     private Long id;
     private String originalFilename;
     private String saveFilename;
+    private String filePath;
     private Long size;
 
     @Builder
-    public Image(String originalFilename, String saveFilename, Long size) {
+    public Image(String originalFilename, String saveFilename, String filePath, Long size) {
         this.originalFilename = originalFilename;
         this.saveFilename = saveFilename;
+        this.filePath = filePath;
         this.size = size;
     }
 }

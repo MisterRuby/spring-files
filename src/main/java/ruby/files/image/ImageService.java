@@ -25,37 +25,49 @@ public class ImageService {
     private final ResourceLoader resourceLoader;
     private final String IMAGE_DIR_PATH = "image";
 
-    @MultipartFileCheck(checkTypes = {IMAGE})
+    @MultipartFileCheck(checkType = IMAGE)
     public void upload(MultipartFile imageFile){
-        Resource resource = resourceLoader.getResource("classpath:static");
         String originalFilename = imageFile.getOriginalFilename();
         String extension = Objects.requireNonNull(originalFilename).substring(originalFilename.lastIndexOf("."));
         String saveFilename = UUID.randomUUID() + extension;
+        Resource resource = resourceLoader.getResource("classpath:static");
 
         try {
-            File file = new File(resource.getFile().getAbsolutePath() + File.separator + IMAGE_DIR_PATH + File.separator + saveFilename + extension);
+            File file = new File(resource.getFile().getAbsolutePath() + File.separator + IMAGE_DIR_PATH + File.separator + saveFilename);
+            transferTo(imageFile, file);
 
-            if (!file.getParentFile().exists()) {
-                file.getParentFile().mkdirs();
-            }
+            Image image = Image.builder()
+                .originalFilename(originalFilename)
+                .saveFilename(saveFilename)
+                .filePath(file.getAbsolutePath())
+                .size(imageFile.getSize())
+                .build();
 
-            imageFile.transferTo(file);
+            imageRepository.save(image);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
-        Image image = Image.builder()
-            .originalFilename(originalFilename)
-            .saveFilename(saveFilename)
-            .size(imageFile.getSize())
-            .build();
-
-        imageRepository.save(image);
+    public void uploadMultiple(List<MultipartFile> imageFiles){
+        imageFiles.forEach(this::upload);
     }
 
     public void uploadS3(MultipartFile image) {}
 
     public List<Image> getList() {
         return imageRepository.findAll();
+    }
+
+    private void transferTo(MultipartFile imageFile, File file) {
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
+        try {
+            imageFile.transferTo(file);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

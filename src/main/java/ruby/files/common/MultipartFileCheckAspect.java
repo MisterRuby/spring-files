@@ -9,8 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.exception.InvalidFileTypeException;
 import ruby.files.common.exception.InvalidFilenameException;
 
-import java.util.Arrays;
-
 @Aspect
 @Component
 public class MultipartFileCheckAspect {
@@ -19,17 +17,16 @@ public class MultipartFileCheckAspect {
     public Object proceed(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         MultipartFileCheck multipartFileCheck = methodSignature.getMethod().getAnnotation(MultipartFileCheck.class);
-        MultipartFileType[] multipartFileTypes = multipartFileCheck.checkTypes();
-        Class<?>[] parameterTypes = methodSignature.getParameterTypes();
+        MultipartFileType multipartFileType = multipartFileCheck.checkType();
         Object[] args = joinPoint.getArgs();
 
-        for (int i = 0; i < parameterTypes.length; i++) {
-            if (!isMultipartFile(parameterTypes[i])) {
+        for (Object arg : args) {
+            if (!isMultipartFile(arg)) {
                 continue;
             }
 
-            MultipartFile multipartFile = (MultipartFile) args[i];
-            if (!isValidType(multipartFile, multipartFileTypes)) {
+            MultipartFile multipartFile = (MultipartFile) arg;
+            if (!multipartFileType.isValidType(multipartFile)) {
                 throw new InvalidFileTypeException();
             }
 
@@ -41,13 +38,8 @@ public class MultipartFileCheckAspect {
         return joinPoint.proceed();
     }
 
-    private boolean isMultipartFile(Class<?> classType) {
-        return classType.equals(MultipartFile.class);
-    }
-
-    private boolean isValidType(MultipartFile multipartFile, MultipartFileType[] multipartFileTypes) {
-        return Arrays.stream(multipartFileTypes)
-            .anyMatch(multipartFileType -> multipartFileType.isType(multipartFile));
+    private boolean isMultipartFile(Object arg) {
+        return arg instanceof MultipartFile;
     }
 
     private boolean isValidFilename(MultipartFile multipartFile) {

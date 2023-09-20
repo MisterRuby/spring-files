@@ -14,7 +14,7 @@ public enum MultipartFileType {
 
     final Set<String> contentTypes;
 
-    public boolean isType(MultipartFile multipartFile) {
+    public boolean isValidType(MultipartFile multipartFile) {
         return this.contentTypes.contains(Objects.requireNonNull(multipartFile.getContentType()).toLowerCase());
     }
 }
