@@ -6,7 +6,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.file.FileInfo;
@@ -16,12 +15,10 @@ import ruby.files.common.file.exception.FailDownloadFileException;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 
-//@Service
+@Service
 @RequiredArgsConstructor
 public class LocalFileService implements FileService {
 
@@ -35,7 +32,8 @@ public class LocalFileService implements FileService {
         Resource resource = resourceLoader.getResource("classpath:static");
 
         try {
-            File file = new File(resource.getFile().getAbsolutePath() + File.separator + parentDir + File.separator + saveFilename);
+            String filePath = resource.getFile().getAbsolutePath() + File.separator + parentDir + File.separator + saveFilename;
+            File file = new File(filePath);
 
             if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
@@ -54,6 +52,7 @@ public class LocalFileService implements FileService {
         }
     }
 
+    @Override
     public ResponseEntity<Resource> download(String originalFilename, String filepath) {
         try {
             UrlResource resource = new UrlResource("file:" + filepath);
@@ -67,13 +66,15 @@ public class LocalFileService implements FileService {
         }
     }
 
-    public boolean deleteFile(String filePath) {
-        File file = new File(filePath);
-        return file.delete();
-    }
-
-    private String getContentDisposition(String originalFilename) {
-        String filename = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8);
-        return  "attachment; filename=\"" + filename + "\"";
+    @Override
+    public void deleteFile(String saveFilename, String parentDir) {
+        Resource resource = resourceLoader.getResource("classpath:static");
+        try {
+            String filePath = resource.getFile().getAbsolutePath() + File.separator + parentDir + File.separator + saveFilename;
+            File file = new File(filePath);
+            file.delete();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

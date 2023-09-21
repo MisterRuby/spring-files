@@ -20,11 +20,11 @@ public class ImageService {
 
     private final ImageRepository imageRepository;
     private final FileService fileService;
+    private final static String IMAGE_DIR = "image";
 
     @MultipartFileCheck(checkType = IMAGE)
     public void upload(MultipartFile imageFile){
-        String imageDir = "image";
-        FileInfo fileInfo = fileService.upload(imageFile, imageDir);
+        FileInfo fileInfo = fileService.upload(imageFile, IMAGE_DIR);
 
         Image image = Image.builder()
             .originalFilename(fileInfo.getOriginalFilename())
@@ -40,13 +40,11 @@ public class ImageService {
         imageFiles.forEach(this::upload);
     }
 
-    public void uploadS3(MultipartFile image) {}
-
     public void delete(Long id) {
         Image image = imageRepository.findById(id)
             .orElseThrow(NotFoundFileException::new);
 
-        fileService.deleteFile(image.getFilePath());
+        fileService.deleteFile(image.getSaveFilename(), IMAGE_DIR);
 
         imageRepository.delete(image);
     }

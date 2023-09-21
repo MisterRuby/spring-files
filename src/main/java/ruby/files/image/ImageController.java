@@ -12,8 +12,6 @@ import ruby.files.image.dto.ImageUploadDTO;
 import ruby.files.image.dto.ImagesDTO;
 import ruby.files.image.exception.NotFoundFileException;
 
-import java.io.IOException;
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor
