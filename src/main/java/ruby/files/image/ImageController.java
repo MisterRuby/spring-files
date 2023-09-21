@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ruby.files.common.file.FileUtils;
+import ruby.files.common.file.FileService;
 import ruby.files.image.dto.ImageDTO;
 import ruby.files.image.dto.ImageMultipleUploadDTO;
 import ruby.files.image.dto.ImageUploadDTO;
@@ -20,7 +20,7 @@ public class ImageController {
 
     private final ImageRepository imageRepository;
     private final ImageService imageService;
-    private final FileUtils fileUtils;
+    private final FileService fileService;
 
     @GetMapping
     public ImagesDTO getImageInfos() {
@@ -46,6 +46,11 @@ public class ImageController {
     public ResponseEntity<Resource> download(@PathVariable Long id) {
         Image image = imageRepository.findById(id).orElseThrow(NotFoundFileException::new);
 
-        return fileUtils.download(image.getOriginalFilename(), image.getFilePath());
+        return fileService.download(image.getOriginalFilename(), image.getFilePath());
+    }
+
+    @DeleteMapping("{id}")
+    public void delete(@PathVariable Long id) {
+        imageService.delete(id);
     }
 }
