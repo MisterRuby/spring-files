@@ -3,3 +3,16 @@ spring:
     resources:
       static-locations: classpath:/static/
       add-mappings: true
+
+cloud:
+  aws:
+    s3:
+      bucket: ruby-files
+    credentials:
+      access-key: AKIA4BDTFTKOGNK3LYXK
+      secret-key: 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
+    region:
+      static: ap-northeast-2
+      auto: false
+    stack:
+      auto: false

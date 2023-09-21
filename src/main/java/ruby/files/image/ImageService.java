@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ruby.files.common.file.FileUtils;
+import ruby.files.common.file.FileInfo;
+import ruby.files.common.file.FileService;
 import ruby.files.common.file.MultipartFileCheck;
 import ruby.files.image.exception.NotFoundFileException;
 
-import java.io.File;
 import java.util.List;
 
 import static ruby.files.common.file.MultipartFileType.IMAGE;
@@ -19,18 +19,18 @@ import static ruby.files.common.file.MultipartFileType.IMAGE;
 public class ImageService {
 
     private final ImageRepository imageRepository;
-    private final FileUtils fileUtils;
+    private final FileService fileService;
 
     @MultipartFileCheck(checkType = IMAGE)
     public void upload(MultipartFile imageFile){
-        String image_dir = "image";
-        File file = fileUtils.transferTo(imageFile, image_dir);
+        String imageDir = "image";
+        FileInfo fileInfo = fileService.upload(imageFile, imageDir);
 
         Image image = Image.builder()
-            .originalFilename(imageFile.getOriginalFilename())
-            .saveFilename(file.getName())
-            .filePath(file.getAbsolutePath())
-            .size(imageFile.getSize())
+            .originalFilename(fileInfo.getOriginalFilename())
+            .saveFilename(fileInfo.getSaveFilename())
+            .filePath(fileInfo.getFilePath())
+            .size(fileInfo.getSize())
             .build();
         imageRepository.save(image);
     }
@@ -46,7 +46,7 @@ public class ImageService {
         Image image = imageRepository.findById(id)
             .orElseThrow(NotFoundFileException::new);
 
-        fileUtils.deleteFile(image.getFilePath());
+        fileService.deleteFile(image.getFilePath());
 
         imageRepository.delete(image);
     }
