@@ -48,4 +48,9 @@ public class ImageController {
 
         return fileUtils.download(image.getOriginalFilename(), image.getFilePath());
     }
+
+    @DeleteMapping("{id}")
+    public void delete(@PathVariable Long id) {
+        imageService.delete(id);
+    }
 }

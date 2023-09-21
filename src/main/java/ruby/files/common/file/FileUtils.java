@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -22,13 +24,22 @@ public class FileUtils {
 
     private final ResourceLoader resourceLoader;
 
-    public void transferTo(MultipartFile imageFile, File file) {
-        if (!file.getParentFile().exists()) {
-            file.getParentFile().mkdirs();
-        }
+    public File transferTo(MultipartFile imageFile, String image_dir) {
+        String originalFilename = imageFile.getOriginalFilename();
+        String extension = Objects.requireNonNull(originalFilename).substring(originalFilename.lastIndexOf("."));
+        String saveFilename = UUID.randomUUID() + extension;
+
+        Resource resource = resourceLoader.getResource("classpath:static");
 
         try {
+            File file = new File(resource.getFile().getAbsolutePath() + File.separator + image_dir + File.separator + saveFilename);
+
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+
             imageFile.transferTo(file);
+            return file;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -47,7 +58,12 @@ public class FileUtils {
         }
     }
 
-    public String getContentDisposition(String originalFilename) {
+    public boolean deleteFile(String filePath) {
+        File file = new File(filePath);
+        return file.delete();
+    }
+
+    private String getContentDisposition(String originalFilename) {
         String filename = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8);
         return  "attachment; filename=\"" + filename + "\"";
     }
