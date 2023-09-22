@@ -18,7 +18,7 @@ import java.net.MalformedURLException;
 import java.util.Objects;
 import java.util.UUID;
 
-//@Service
+@Service
 @RequiredArgsConstructor
 public class LocalFileService implements FileService {
 
@@ -55,7 +55,7 @@ public class LocalFileService implements FileService {
     @Override
     public ResponseEntity<Resource> download(String originalFilename, String filepath) {
         try {
-            UrlResource resource = new UrlResource("file:" + filepath);
+            UrlResource resource = new UrlResource(filepath);
             String contentDisposition = getContentDisposition(originalFilename);
 
             return ResponseEntity.ok()

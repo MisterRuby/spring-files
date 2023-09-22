@@ -9,7 +9,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.file.FileInfo;
 import ruby.files.common.file.FileService;
@@ -22,7 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
-@Service
+//@Service
 @RequiredArgsConstructor
 public class S3FileService implements FileService {
 
