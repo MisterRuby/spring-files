@@ -18,7 +18,7 @@ import java.net.MalformedURLException;
 import java.util.Objects;
 import java.util.UUID;
 
-@Service
+//@Service
 @RequiredArgsConstructor
 public class LocalFileService implements FileService {
 
