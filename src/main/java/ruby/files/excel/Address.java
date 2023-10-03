@@ -16,10 +16,10 @@ public class Address {
     @Id
     private String bcode;
     private String addressName;
-    private Short depth;
+    private byte depth;
 
     @Builder
-    public Address(String bcode, String addressName, Short depth) {
+    public Address(String bcode, String addressName, byte depth) {
         this.bcode = bcode;
         this.addressName = addressName;
         this.depth = depth;
