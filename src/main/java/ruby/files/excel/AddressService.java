@@ -92,7 +92,7 @@ public class AddressService {
 
     @Transactional(readOnly = true)
     public void downloadExcel(HttpServletResponse response) throws IOException {
-        String filename = URLEncoder.encode("주소목록.xlsx", StandardCharsets.UTF_8);
+        String filename = "주소목록.xlsx";
         setExcelResponseHeader(filename, response);
 
         List<Address> addresses = addressRepository.findAll();
@@ -111,6 +111,12 @@ public class AddressService {
         }
     }
 
+    private void setExcelResponseHeader(String filename, HttpServletResponse response) {
+        String encodeFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8);
+        response.setContentType("application/vnd.ms-excel");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodeFilename + "\"");
+    }
+
     private List<CellStyle> getColCellStyles(SXSSFWorkbook workbook) {
         CellStyle bcodeCellStyle = getBcodeCellStyle(workbook);
         CellStyle addressNameCellStyle = getAddressNameCellStyle(workbook);
@@ -127,11 +133,6 @@ public class AddressService {
         cell = row.createCell(1);
         cell.setCellValue(address.getAddressName());
         cell.setCellStyle(colCellStyles.get(cell.getColumnIndex()));
-    }
-
-    private void setExcelResponseHeader(String filename, HttpServletResponse response) {
-        response.setContentType("application/vnd.ms-excel");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
     }
 
     private void setColumnWidth(SXSSFSheet sheet) {
