@@ -13,9 +13,9 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ruby.files.excel.enums.AddressDepthCode;
 import ruby.files.excel.enums.AddressUseCode;
@@ -30,17 +30,23 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AddressService {
 
     private final AddressRepository addressRepository;
 
+    /**
+     * TODO
+     * - 기존 사용하던 주소를 삭제하고 새 주소를 등록한다.
+     * - JPA 의 saveAll 은 건수가 많아지면 성능이 좋지 않다.
+     */
     public void uploadExcel(MultipartFile excelFile){
+        addressRepository.deleteAll();
         try (InputStream is = excelFile.getInputStream()) {
             // SXSSF 는 쓰기만 가능
             XSSFWorkbook workbook = new XSSFWorkbook(is);
 
             XSSFSheet sheetAt = workbook.getSheetAt(0);
-
             for (Row row : sheetAt) {
                 if (!isUseRow(row)) {
                     continue;
@@ -84,36 +90,48 @@ public class AddressService {
         return 3;
     }
 
-
+    @Transactional(readOnly = true)
     public void downloadExcel(HttpServletResponse response) throws IOException {
         String filename = URLEncoder.encode("주소목록.xlsx", StandardCharsets.UTF_8);
-        response.setContentType("application/vnd.ms-excel");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+        setExcelResponseHeader(filename, response);
 
         List<Address> addresses = addressRepository.findAll();
         try (SXSSFWorkbook workbook = new SXSSFWorkbook()){
             SXSSFSheet sheet = workbook.createSheet();
             setColumnWidth(sheet);
-
-            CellStyle bcodeCellStyle = getBcodeCellStyle(workbook);
-            CellStyle addressNameCellStyle = getAddressNameCellStyle(workbook);
+            List<CellStyle> colCellStyles = getColCellStyles(workbook);
 
             int rowNum = 0;
             for (Address address : addresses) {
-                SXSSFRow row = sheet.createRow(rowNum++);
-
-                SXSSFCell cell = row.createCell(0);
-                cell.setCellValue(address.getBcode());
-                cell.setCellStyle(bcodeCellStyle);
-
-                cell = row.createCell(1);
-                cell.setCellValue(address.getAddressName());
-                cell.setCellStyle(addressNameCellStyle);
+                createRow(address, sheet, rowNum++, colCellStyles);
             }
 
             workbook.write(response.getOutputStream());
             workbook.dispose();
         }
+    }
+
+    private List<CellStyle> getColCellStyles(SXSSFWorkbook workbook) {
+        CellStyle bcodeCellStyle = getBcodeCellStyle(workbook);
+        CellStyle addressNameCellStyle = getAddressNameCellStyle(workbook);
+        return List.of(bcodeCellStyle, addressNameCellStyle);
+    }
+
+    private void createRow(Address address, SXSSFSheet sheet, int rowNum, List<CellStyle> colCellStyles) {
+        SXSSFRow row = sheet.createRow(rowNum);
+
+        SXSSFCell cell = row.createCell(0);
+        cell.setCellValue(address.getBcode());
+        cell.setCellStyle(colCellStyles.get(cell.getColumnIndex()));
+
+        cell = row.createCell(1);
+        cell.setCellValue(address.getAddressName());
+        cell.setCellStyle(colCellStyles.get(cell.getColumnIndex()));
+    }
+
+    private void setExcelResponseHeader(String filename, HttpServletResponse response) {
+        response.setContentType("application/vnd.ms-excel");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
     }
 
     private void setColumnWidth(SXSSFSheet sheet) {
