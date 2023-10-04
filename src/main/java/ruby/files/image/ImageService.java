@@ -11,7 +11,7 @@ import ruby.files.image.exception.NotFoundFileException;
 
 import java.util.List;
 
-import static ruby.files.common.file.MultipartFileType.IMAGE;
+import static ruby.files.common.file.FileType.IMAGE;
 
 @Service
 @Transactional

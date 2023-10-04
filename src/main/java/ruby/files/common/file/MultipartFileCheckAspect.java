@@ -19,16 +19,16 @@ public class MultipartFileCheckAspect {
     public Object proceed(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         MultipartFileCheck multipartFileCheck = methodSignature.getMethod().getAnnotation(MultipartFileCheck.class);
-        MultipartFileType multipartFileType = multipartFileCheck.checkType();
+        FileType fileType = multipartFileCheck.checkType();
         Object[] args = joinPoint.getArgs();
 
         for (Object arg : args) {
             if (isMultipartFile(arg)) {
                 MultipartFile multipartFile = (MultipartFile) arg;
-                checkMultipartFileException(multipartFile, multipartFileType);
+                checkMultipartFileException(multipartFile, fileType);
             } else if (isMultipartMultipleFile(arg)) {
                 ((List<?>)arg).forEach(multipartFile ->
-                    checkMultipartFileException((MultipartFile) multipartFile, multipartFileType)
+                    checkMultipartFileException((MultipartFile) multipartFile, fileType)
                 );
             }
         }
@@ -48,8 +48,8 @@ public class MultipartFileCheckAspect {
         return ((List<?>) arg).stream().allMatch(this::isMultipartFile);
     }
 
-    private void checkMultipartFileException(MultipartFile multipartFile, MultipartFileType multipartFileType) {
-        if (!multipartFileType.isValidType(multipartFile)) {
+    private void checkMultipartFileException(MultipartFile multipartFile, FileType fileType) {
+        if (!fileType.isValidType(multipartFile)) {
             throw new InvalidFileTypeException();
         }
 

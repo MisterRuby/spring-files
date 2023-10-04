@@ -7,9 +7,9 @@ import java.util.Objects;
 import java.util.Set;
 
 @AllArgsConstructor
-public enum MultipartFileType {
+public enum FileType {
     IMAGE(Set.of("image/png", "image/jpeg")),
-    EXCEL(Set.of("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
+    EXCEL(Set.of("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel")),
     PDF(Set.of("application/pdf"));
 
     final Set<String> contentTypes;
