@@ -31,15 +31,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AddressService {
+public class AddressExcelService {
 
     private final AddressRepository addressRepository;
 
-    /**
-     * TODO
-     * - 기존 사용하던 주소를 삭제하고 새 주소를 등록한다.
-     * - JPA 의 saveAll 은 건수가 많아지면 성능이 좋지 않다.
-     */
     public void uploadExcel(MultipartFile excelFile){
         addressRepository.deleteAll();
         try (InputStream is = excelFile.getInputStream()) {

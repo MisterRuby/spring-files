@@ -6,12 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.file.FileInfo;
 import ruby.files.common.file.FileService;
-import ruby.files.common.file.MultipartFileCheck;
 import ruby.files.image.exception.NotFoundFileException;
 
 import java.util.List;
-
-import static ruby.files.common.file.FileType.IMAGE;
 
 @Service
 @Transactional
@@ -22,7 +19,6 @@ public class ImageService {
     private final FileService fileService;
     private final static String IMAGE_DIR = "image";
 
-    @MultipartFileCheck(checkType = IMAGE)
     public void upload(MultipartFile imageFile){
         FileInfo fileInfo = fileService.upload(imageFile, IMAGE_DIR);
 
@@ -35,7 +31,6 @@ public class ImageService {
         imageRepository.save(image);
     }
 
-    @MultipartFileCheck(checkType = IMAGE)
     public void uploadMultiple(List<MultipartFile> imageFiles){
         imageFiles.forEach(this::upload);
     }
