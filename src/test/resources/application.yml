@@ -1,3 +1,10 @@
-logging:
-  level:
-    root: info
+spring:
+  config:
+    import: application-s3.yml
+  web:
+    resources:
+      static-locations: classpath:/static/
+      add-mappings: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
