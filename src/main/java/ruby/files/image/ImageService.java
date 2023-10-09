@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.file.FileInfo;
 import ruby.files.common.file.FileService;
-import ruby.files.image.exception.NotFoundFileException;
+import ruby.files.common.file.exception.NotFoundFileException;
 
 import java.util.List;
 
