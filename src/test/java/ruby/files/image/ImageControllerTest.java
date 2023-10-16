@@ -104,6 +104,7 @@ class ImageControllerTest {
         String filePath = resource.getFile().getAbsolutePath() + File.separator + ImageService.IMAGE_DIR
             + File.separator + image.getSaveFilename();
         file = new File(filePath);
+        assertThat(imageRepository.count()).isEqualTo(1);
         assertThat(image.getOriginalFilename()).isEqualTo(originalFilename);
         assertThat(file.exists()).isTrue();
     }
@@ -186,8 +187,6 @@ class ImageControllerTest {
 
         List<Image> images = imageRepository.findAll();
         Set<String> originalFilenames = Set.of(originalFilename1, originalFilename2);
-        assertThat(images.stream().allMatch(image -> originalFilenames.contains(image.getOriginalFilename()))).isTrue();
-
         boolean existsFiles = images.stream()
             .allMatch(image -> {
                 try {
@@ -199,6 +198,9 @@ class ImageControllerTest {
                     throw new RuntimeException(e);
                 }
             });
+
+        assertThat(imageRepository.count()).isEqualTo(2);
+        assertThat(images.stream().allMatch(image -> originalFilenames.contains(image.getOriginalFilename()))).isTrue();
         assertThat(existsFiles).isTrue();
     }
 }
