@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.file.FileInfo;
 import ruby.files.common.file.FileService;
-import ruby.files.image.exception.NotFoundFileException;
+import ruby.files.common.file.exception.NotFoundFileException;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class ImageService {
 
     private final ImageRepository imageRepository;
     private final FileService fileService;
-    private final static String IMAGE_DIR = "image";
+    public final static String IMAGE_DIR = "image";
 
     public void upload(MultipartFile imageFile){
         FileInfo fileInfo = fileService.upload(imageFile, IMAGE_DIR);

@@ -3,11 +3,11 @@ package ruby.files.common.file.exception;
 import org.springframework.http.HttpStatus;
 import ruby.files.common.exception.CustomRuntimeException;
 
-public class FailDownloadFileException extends CustomRuntimeException {
+public class FailDeleteFileException extends CustomRuntimeException {
 
-    public final static String MESSAGE = "파일 다운로드에 실패하였습니다.";
+    public final static String MESSAGE = "파일 삭제에 실패했습니다.";
 
-    public FailDownloadFileException() {
+    public FailDeleteFileException() {
         super(MESSAGE);
     }
 

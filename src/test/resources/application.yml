@@ -1,0 +1,19 @@
+spring:
+  config:
+    import: application-s3.yml
+  web:
+    resources:
+      static-locations: classpath:/static/
+      add-mappings: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true

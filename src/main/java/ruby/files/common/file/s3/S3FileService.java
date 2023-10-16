@@ -2,6 +2,7 @@ package ruby.files.common.file.s3;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.file.FileInfo;
 import ruby.files.common.file.FileService;
 import ruby.files.common.file.exception.FailDownloadFileException;
+import ruby.files.common.file.exception.NotFoundFileException;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.util.UUID;
 @Slf4j
 //@Service
 @RequiredArgsConstructor
+@Getter
 public class S3FileService implements FileService {
 
     private final AmazonS3Client amazonS3Client;
@@ -59,7 +62,7 @@ public class S3FileService implements FileService {
     @Override
     public ResponseEntity<Resource> download(String originalFilename, String filepath) {
         try {
-            UrlResource resource = new UrlResource(filepath);
+            UrlResource resource = new UrlResource("file:" + filepath);
             String contentDisposition = getContentDisposition(originalFilename);
 
             return ResponseEntity.ok()
@@ -73,6 +76,11 @@ public class S3FileService implements FileService {
     @Override
     public void deleteFile(String saveFilename, String parentDir) {
         String objectPath = parentDir + File.separator + saveFilename;
+        boolean existsFile = amazonS3Client.doesBucketExistV2(objectPath);
+        if (!existsFile) {
+            throw new NotFoundFileException();
+        }
+
         amazonS3Client.deleteObject(bucket, objectPath);
     }
 }

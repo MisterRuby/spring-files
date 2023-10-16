@@ -7,10 +7,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ruby.files.common.file.FileService;
+import ruby.files.common.file.exception.NotFoundFileException;
 import ruby.files.image.dto.ImageMultipleUploadDTO;
 import ruby.files.image.dto.ImageUploadDTO;
 import ruby.files.image.dto.ImagesDTO;
-import ruby.files.image.exception.NotFoundFileException;
 
 @Slf4j
 @RestController
@@ -25,7 +25,7 @@ public class ImageController {
     @PostMapping
     public void upload(@Valid ImageUploadDTO imageFile) {
         imageService.upload(imageFile.getFile());
-    }
+    };
 
     @PostMapping("/multiple")
     public void uploadMultiple(@Valid ImageMultipleUploadDTO imageFiles) {
