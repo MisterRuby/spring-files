@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -256,4 +255,50 @@ class ImageControllerTest {
             .andDo(print());
     }
 
+    @Test
+    @DisplayName("존재하지 않는 이미지 id 로 이미지 삭제 요청")
+    void failNotFoundIdImageDelete() throws Exception {
+        Resource resource = resourceLoader.getResource("classpath:static");
+        File file = new File(resource.getFile().getAbsolutePath() + "/file/imageSample.jpg");
+        String fieldName = "file";
+        String originalFilename = "imageSample.jpg";
+        String contentType = "image/png";
+        FileInputStream fileInputStream = new FileInputStream(file);
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(fieldName, originalFilename, contentType, fileInputStream);
+        imageService.upload(mockMultipartFile);
+        Image image = imageRepository.findAll().get(0);
+        Long id = image.getId();
+
+        mockMvc.perform(delete("/images/{id}", id + 1))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(NotFoundFileException.MESSAGE));
+
+        String filePath = resource.getFile().getAbsolutePath() + File.separator + ImageService.IMAGE_DIR
+            + File.separator + image.getSaveFilename();
+        file = new File(filePath);
+        assertThat(file.exists()).isTrue();     // 실패시 파일이 삭제되지 않고 남아있어야 함
+    }
+
+    @Test
+    @DisplayName("이미지 삭제 성공")
+    void successImageDelete() throws Exception {
+        Resource resource = resourceLoader.getResource("classpath:static");
+        File file = new File(resource.getFile().getAbsolutePath() + "/file/imageSample.jpg");
+        String fieldName = "file";
+        String originalFilename = "imageSample.jpg";
+        String contentType = "image/png";
+        FileInputStream fileInputStream = new FileInputStream(file);
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(fieldName, originalFilename, contentType, fileInputStream);
+        imageService.upload(mockMultipartFile);
+        Image image = imageRepository.findAll().get(0);
+        Long id = image.getId();
+
+        mockMvc.perform(delete("/images/{id}", id))
+            .andExpect(status().isOk());
+
+        String filePath = resource.getFile().getAbsolutePath() + File.separator + ImageService.IMAGE_DIR
+            + File.separator + image.getSaveFilename();
+        file = new File(filePath);
+        assertThat(file.exists()).isFalse();     // 성공시 파일이 삭제되어 있어야 함
+    }
 }
