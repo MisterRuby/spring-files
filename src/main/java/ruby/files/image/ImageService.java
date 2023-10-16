@@ -17,7 +17,7 @@ public class ImageService {
 
     private final ImageRepository imageRepository;
     private final FileService fileService;
-    private final static String IMAGE_DIR = "image";
+    public final static String IMAGE_DIR = "image";
 
     public void upload(MultipartFile imageFile){
         FileInfo fileInfo = fileService.upload(imageFile, IMAGE_DIR);
