@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ruby.files.common.file.FileInfo;
 import ruby.files.common.file.FileService;
+import ruby.files.common.file.exception.FailDeleteFileException;
 import ruby.files.common.file.exception.FailDownloadFileException;
+import ruby.files.common.file.exception.NotFoundFileException;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +57,7 @@ public class LocalFileService implements FileService {
     @Override
     public ResponseEntity<Resource> download(String originalFilename, String filepath) {
         try {
-            UrlResource resource = new UrlResource(filepath);
+            UrlResource resource = new UrlResource("file:" + filepath);
             String contentDisposition = getContentDisposition(originalFilename);
 
             return ResponseEntity.ok()
@@ -72,9 +74,14 @@ public class LocalFileService implements FileService {
         try {
             String filePath = resource.getFile().getAbsolutePath() + File.separator + parentDir + File.separator + saveFilename;
             File file = new File(filePath);
+
+            if (!file.exists()) {
+                throw new NotFoundFileException();
+            }
+
             file.delete();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FailDeleteFileException();
         }
     }
 }
