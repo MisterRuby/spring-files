@@ -5,6 +5,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ruby.files.common.ErrorResponse;
 
 @RestControllerAdvice
 public class ValidExceptionController {
@@ -13,12 +14,12 @@ public class ValidExceptionController {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BindException.class)
-    public ValidErrorResponse bindExceptionHandler(BindException e) {
-        ValidErrorResponse validErrorResponse = ValidErrorResponse.builder()
+    public ErrorResponse validExceptionHandler(BindException e) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .message(BIND_EXCEPTION_MESSAGE)
                 .build();
 
-        e.getFieldErrors().forEach(validErrorResponse::addValidation);
-        return validErrorResponse;
+        e.getFieldErrors().forEach(errorResponse::addValidation);
+        return errorResponse;
     }
 }

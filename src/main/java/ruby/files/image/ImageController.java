@@ -25,7 +25,7 @@ public class ImageController {
     @PostMapping
     public void upload(@Valid ImageUploadDTO imageFile) {
         imageService.upload(imageFile.getFile());
-    }
+    };
 
     @PostMapping("/multiple")
     public void uploadMultiple(@Valid ImageMultipleUploadDTO imageFiles) {

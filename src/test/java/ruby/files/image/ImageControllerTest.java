@@ -10,9 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import ruby.files.common.CommonExceptionController;
+import ruby.files.common.file.exception.NotFoundFileException;
 import ruby.files.common.file.local.LocalFileService;
 import ruby.files.common.valid.ValidExceptionController;
 import ruby.files.common.valid.multipart.multiple.MultipartFileMultipleValid;
@@ -25,14 +28,15 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(classes = {
     ImageController.class, ImageService.class,
     DefaultResourceLoader.class, LocalFileService.class,
-    ValidExceptionController.class
+    ValidExceptionController.class, CommonExceptionController.class
 })
 @EnableAutoConfiguration
 @AutoConfigureMockMvc
@@ -47,6 +51,10 @@ class ImageControllerTest {
     ResourceLoader resourceLoader;
     @Autowired
     ImageRepository imageRepository;
+    @Autowired
+    ImageService imageService;
+    @Autowired
+    LocalFileService localFileService;
 
     @Test
     @DisplayName("이미지 단일 업로드시 파일 명이 빈 값일 경우")
@@ -63,7 +71,8 @@ class ImageControllerTest {
                 .file(mockMultipartFile)
             )
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.validation.file").value(MultipartFileValid.FILENAME_EMPTY_MESSAGE));
+            .andExpect(jsonPath("$.message").value(ValidExceptionController.BIND_EXCEPTION_MESSAGE))
+            .andExpect(jsonPath("$.validations.file").value(MultipartFileValid.FILENAME_EMPTY_MESSAGE));
     }
 
     @Test
@@ -81,7 +90,8 @@ class ImageControllerTest {
                 .file(mockMultipartFile)
             )
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.validation.file").value(MultipartFileValid.MESSAGE));
+            .andExpect(jsonPath("$.message").value(ValidExceptionController.BIND_EXCEPTION_MESSAGE))
+            .andExpect(jsonPath("$.validations.file").value(MultipartFileValid.MESSAGE));
     }
 
     @Test
@@ -132,7 +142,8 @@ class ImageControllerTest {
                 .file(mockMultipartFile2)
             )
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.validation.files").value(MultipartFileMultipleValid.FILENAME_EMPTY_MESSAGE));
+            .andExpect(jsonPath("$.message").value(ValidExceptionController.BIND_EXCEPTION_MESSAGE))
+            .andExpect(jsonPath("$.validations.files").value(MultipartFileMultipleValid.FILENAME_EMPTY_MESSAGE));
     }
 
     @Test
@@ -158,7 +169,8 @@ class ImageControllerTest {
                 .file(mockMultipartFile2)
             )
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.validation.files").value(MultipartFileMultipleValid.MESSAGE));
+            .andExpect(jsonPath("$.message").value(ValidExceptionController.BIND_EXCEPTION_MESSAGE))
+            .andExpect(jsonPath("$.validations.files").value(MultipartFileMultipleValid.MESSAGE));
     }
 
     @Test
@@ -203,4 +215,45 @@ class ImageControllerTest {
         assertThat(images.stream().allMatch(image -> originalFilenames.contains(image.getOriginalFilename()))).isTrue();
         assertThat(existsFiles).isTrue();
     }
+
+    @Test
+    @DisplayName("존재하지 않는 이미지 id 로 이미지 다운로드 요청")
+    void failNotFoundIdImageDownload() throws Exception {
+        Resource resource = resourceLoader.getResource("classpath:static");
+        File file = new File(resource.getFile().getAbsolutePath() + "/file/imageSample.jpg");
+        String fieldName = "file";
+        String originalFilename = "imageSample.jpg";
+        String contentType = "image/png";
+        FileInputStream fileInputStream = new FileInputStream(file);
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(fieldName, originalFilename, contentType, fileInputStream);
+        imageService.upload(mockMultipartFile);
+        Image image = imageRepository.findAll().get(0);
+        Long id = image.getId();
+
+        mockMvc.perform(get("/images/{id}", id + 1))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(NotFoundFileException.MESSAGE));
+    }
+
+    @Test
+    @DisplayName("이미지 다운로드 성공")
+    void successImageDownload() throws Exception {
+        Resource resource = resourceLoader.getResource("classpath:static");
+        File file = new File(resource.getFile().getAbsolutePath() + "/file/imageSample.jpg");
+        String fieldName = "file";
+        String originalFilename = "imageSample.jpg";
+        String contentType = "image/png";
+        FileInputStream fileInputStream = new FileInputStream(file);
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(fieldName, originalFilename, contentType, fileInputStream);
+        imageService.upload(mockMultipartFile);
+        Image image = imageRepository.findAll().get(0);
+        Long id = image.getId();
+
+        mockMvc.perform(get("/images/{id}", id))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("Content-Disposition", localFileService.getContentDisposition(originalFilename)))
+            .andDo(print());
+    }
+
 }
