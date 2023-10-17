@@ -1,6 +1,8 @@
 package ruby.files.image;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +51,20 @@ class ImageControllerTest {
     @Autowired
     ResourceLoader resourceLoader;
     @Autowired
+    EntityManager em;
+    @Autowired
     ImageRepository imageRepository;
     @Autowired
     ImageService imageService;
     @Autowired
     LocalFileService localFileService;
+
+    @BeforeEach
+    void beforeEach() {
+        imageRepository.deleteAll();
+        em.flush();
+        em.clear();
+    }
 
     @Test
     @DisplayName("이미지 단일 업로드시 파일 명이 빈 값일 경우")

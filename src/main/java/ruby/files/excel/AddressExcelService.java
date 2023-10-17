@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ruby.files.excel.enums.AddressDepthCode;
 import ruby.files.excel.enums.AddressUseCode;
 import ruby.files.excel.exception.AddressExcelUploadFailException;
+import ruby.files.excel.exception.WrongAddressExcelFileException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +43,9 @@ public class AddressExcelService {
             XSSFWorkbook workbook = new XSSFWorkbook(is);
 
             XSSFSheet sheetAt = workbook.getSheetAt(0);
+            if (!isAddressSheet(sheetAt)) {
+                throw new WrongAddressExcelFileException();
+            }
             for (Row row : sheetAt) {
                 if (!isUseRow(row)) {
                     continue;
@@ -65,6 +69,7 @@ public class AddressExcelService {
     private Address getAddressByRow(Row row) {
         String bcode = row.getCell(0).getStringCellValue();
         String addressName = row.getCell(1).getStringCellValue();
+
         byte depth = getDepth(bcode);
 
         return Address.builder()
@@ -73,6 +78,37 @@ public class AddressExcelService {
             .depth(depth)
             .build();
     }
+
+    private boolean isAddressSheet(XSSFSheet sheetAt) {
+        for (Row row : sheetAt) {
+            String bcode = row.getCell(0).getStringCellValue();
+            String addressName = row.getCell(1).getStringCellValue();
+
+            if (!isBcode(bcode) || !isAddressName(addressName)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isBcode(String bcode) {
+        if (bcode == null || bcode.length() != 10) {
+            return false;
+        }
+
+        try {
+            Long.parseLong(bcode);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private boolean isAddressName(String addressName) {
+        return !(addressName == null || addressName.isBlank());
+    }
+
 
     private byte getDepth(String bcode) {
         if (AddressDepthCode.ONE.getSuffix().equals(bcode.substring(2))) {
